@@ -1,7 +1,7 @@
 from NeuralMorphemeSegmentation.neural_morph_segm import load_cls
-
 from pathlib import Path
-
+import sys
+import time
 
 BASE_DIR = Path('__this__').parent.resolve()
 
@@ -9,7 +9,6 @@ PATHS = {
     'morphodict': BASE_DIR / 'models/morphodict_10_07_2023.json',
     'tikhonov': BASE_DIR / 'models/tikhonov_13_10_2023.json'
 }
-
 
 def predict(lemma, dataset_name):
     model = load_cls(PATHS[dataset_name])
@@ -23,9 +22,34 @@ def predict(lemma, dataset_name):
         {"morpheme": morpheme, "type": morpheme_type}
         for morpheme, morpheme_type in zip(morphemes, morpheme_types)
     ]
+    
+    # Извлекаем тип слова (например, "NOUN") из первого элемента morpheme_types
+    word_type = morpheme_types[0] if morpheme_types else "UNKNOWN"  # Используем "UNKNOWN", если тип не найден
 
-    return parsing
+    return parsing, word_type  # Возвращаем также тип слова
 
+def process_file(input_file, output_file, dataset_name):
+    with open(input_file, 'r', encoding='utf-8') as infile, open(output_file, 'w', encoding='utf-8') as outfile:
+        for line in infile:
+            lemma = line.strip()
+            if lemma:  # Проверяем, что строка не пустая
+                result, word_type = predict(lemma, dataset_name)  # Извлекаем тип слова
+                formatted_result = "\t".join([f"{m['morpheme']}:{m['type']}" for m in result])
+                # Записываем морфемы и тип слова в выходной файл
+                outfile.write(f"{lemma}\t{formatted_result}\t{word_type}\n")
 
 if __name__ == "__main__":
-    print(predict(lemma="слово", dataset_name='morphodict'))
+    start_time = time.time()
+
+    if len(sys.argv) != 4:
+        print("Usage: python mpe_morphemes.py <input_file> <output_file> <dataset_name>")
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    dataset_name = sys.argv[3]
+
+    process_file(input_file, output_file, dataset_name)
+
+    end_time = time.time()
+    print(f"Processing time: {end_time - start_time} seconds")
