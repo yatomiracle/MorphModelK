@@ -22,21 +22,17 @@ def predict(lemma, dataset_name):
         {"morpheme": morpheme, "type": morpheme_type}
         for morpheme, morpheme_type in zip(morphemes, morpheme_types)
     ]
-    
-    # Извлекаем тип слова (например, "NOUN") из первого элемента morpheme_types
-    word_type = morpheme_types[0] if morpheme_types else "UNKNOWN"  # Используем "UNKNOWN", если тип не найден
 
-    return parsing, word_type  # Возвращаем также тип слова
+    return parsing
 
 def process_file(input_file, output_file, dataset_name):
     with open(input_file, 'r', encoding='utf-8') as infile, open(output_file, 'w', encoding='utf-8') as outfile:
         for line in infile:
             lemma = line.strip()
             if lemma:  # Проверяем, что строка не пустая
-                result, word_type = predict(lemma, dataset_name)  # Извлекаем тип слова
+                result = predict(lemma, dataset_name)
                 formatted_result = "\t".join([f"{m['morpheme']}:{m['type']}" for m in result])
-                # Записываем морфемы и тип слова в выходной файл
-                outfile.write(f"{lemma}\t{formatted_result}\t{word_type}\n")
+                outfile.write(f"{lemma}\t{formatted_result}\n")
 
 if __name__ == "__main__":
     start_time = time.time()
