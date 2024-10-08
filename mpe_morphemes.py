@@ -31,7 +31,7 @@ def process_file(input_file, output_file, dataset_name):
             lemma = line.strip()
             if lemma:  # Проверяем, что строка не пустая
                 result = predict(lemma, dataset_name)
-                formatted_result = "\t".join([f"{m['morpheme']}:{m['type']}" for m in result])
+                formatted_result = "/".join([f"{m['morpheme']}:{m['type']}" for m in result])
                 outfile.write(f"{lemma}\t{formatted_result}\n")
 
 if __name__ == "__main__":
